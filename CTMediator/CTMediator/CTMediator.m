@@ -8,6 +8,7 @@
 
 #import "CTMediator.h"
 #import <objc/runtime.h>
+#import "PageNotFoundVC.h"
 
 @interface CTMediator ()
 
@@ -63,9 +64,8 @@
     return result;
 }
 
-- (id)performTarget:(NSString *)targetName action:(NSString *)actionName params:(NSDictionary *)params shouldCacheTarget:(BOOL)shouldCacheTarget
-{
-    
+- (id)performTarget:(NSString *)targetName action:(NSString *)actionName params:(NSDictionary *)params shouldCacheTarget:(BOOL)shouldCacheTarget API_AVAILABLE(ios(6.0))
+{    
     NSString *targetClassString = [NSString stringWithFormat:@"Target_%@", targetName];
     NSString *actionString = [NSString stringWithFormat:@"Action_%@:", actionName];
     Class targetClass;
@@ -80,7 +80,7 @@
     
     if (target == nil) {
         // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
-        return nil;
+        return [PageNotFoundVC new];
     }
     
     if (shouldCacheTarget) {
@@ -112,13 +112,13 @@
             } else {
                 // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
                 [self.cachedTarget removeObjectForKey:targetClassString];
-                return nil;
+                return [PageNotFoundVC new];
             }
         }
     }
 }
 
-- (id)performTarget:(NSString *)targetName action:(NSString *)actionName shouldCacheTarget:(BOOL)shouldCacheTarget
+- (id)performTarget:(NSString *)targetName action:(NSString *)actionName shouldCacheTarget:(BOOL)shouldCacheTarget API_AVAILABLE(ios(6.0))
 {
     NSString *targetClassString = [NSString stringWithFormat:@"Target_%@", targetName];
     NSString *actionString = [NSString stringWithFormat:@"Action_%@", actionName];
@@ -136,7 +136,7 @@
     if (target == nil)
     {
         // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
-        return nil;
+        return [PageNotFoundVC new];
     }
     
     if (shouldCacheTarget)
@@ -178,7 +178,7 @@
             {
                 // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
                 [self.cachedTarget removeObjectForKey:targetClassString];
-                return nil;
+                return [PageNotFoundVC new];
             }
         }
     }
