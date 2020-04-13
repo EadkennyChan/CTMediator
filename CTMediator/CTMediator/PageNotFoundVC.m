@@ -33,11 +33,11 @@
 }
 
 - (void)forwardInvocation:(NSInvocation *)anInvocation {
-  DLog(@"forwardInvocation");
+  NSLog(@"forwardInvocation");
 }
 
 - (void)noneRespond {
-  DLog(@"noneRespond");
+  NSLog(@"noneRespond");
 }
 
 @end
