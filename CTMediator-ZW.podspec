@@ -25,13 +25,13 @@ Pod::Spec.new do |s|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
-  this is CTMediator
+    this is CTMediator
                    DESC
 
-    s.homepage         = 'https://github.com/EadkennyChan'
-    s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
-    s.author           = { 'Eadkennychan' => 'Eadkennychan@gmail.com' }
-    s.source       = { :git => "https://github.com/EadkennyChan/CTMediator.git", :tag => s.version.to_s }
+  s.homepage         = 'https://github.com/EadkennyChan'
+  s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
+  s.author           = { 'Eadkennychan' => 'Eadkennychan@gmail.com' }
+  s.source       = { :git => "https://github.com/EadkennyChan/CTMediator.git", :tag => s.version.to_s }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -68,8 +68,9 @@ Pod::Spec.new do |s|
   #  the lib prefix of their name.
   #
 
+  s.ios.deployment_target = '8.0'
   # s.framework  = "SomeFramework"
-  # s.frameworks = "SomeFramework", "AnotherFramework"
+   s.frameworks = "UIKit" #, "AnotherFramework"
 
   # s.library   = "iconv"
   # s.libraries = "iconv", "xml2"
