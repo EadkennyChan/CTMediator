@@ -8,11 +8,12 @@
 
 #import "CTMediator.h"
 #import <objc/runtime.h>
-#import "PageNotFoundVC.h"
+#import <objc/message.h>
 
 @interface CTMediator ()
 
-@property (nonatomic, strong) NSMutableDictionary *cachedTarget;
+@property (nonatomic, strong)NSMutableDictionary *cachedTarget;
+@property (nonatomic, strong)Class PageNotFoundClass;
 
 @end
 
@@ -24,7 +25,8 @@
     static CTMediator *mediator;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        mediator = [[CTMediator alloc] init];
+      mediator = [[CTMediator alloc] init];
+      mediator.PageNotFoundClass = [mediator addPageNotFoundClass];
     });
     return mediator;
 }
@@ -79,8 +81,8 @@
     SEL action = NSSelectorFromString(actionString);
     
     if (target == nil) {
-        // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
-        return [PageNotFoundVC new];
+      // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
+      return [self pageNotFound];
     }
     
     if (shouldCacheTarget) {
@@ -110,9 +112,9 @@
                 return [target performSelector:action withObject:params];
 #pragma clang diagnostic pop
             } else {
-                // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
-                [self.cachedTarget removeObjectForKey:targetClassString];
-                return [PageNotFoundVC new];
+              // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
+              [self.cachedTarget removeObjectForKey:targetClassString];
+              return [self pageNotFound];
             }
         }
     }
@@ -135,8 +137,8 @@
     
     if (target == nil)
     {
-        // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
-        return [PageNotFoundVC new];
+      // 这里是处理无响应请求的地方之一，这个demo做得比较简单，如果没有可以响应的target，就直接return了。实际开发过程中是可以事先给一个固定的target专门用于在这个时候顶上，然后处理这种请求的
+      return [self pageNotFound];
     }
     
     if (shouldCacheTarget)
@@ -176,9 +178,9 @@
             }
             else
             {
-                // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
-                [self.cachedTarget removeObjectForKey:targetClassString];
-                return [[PageNotFoundVC alloc] init];
+              // 这里也是处理无响应请求的地方，在notFound都没有的时候，这个demo是直接return了。实际开发过程中，可以用前面提到的固定的target顶上的。
+              [self.cachedTarget removeObjectForKey:targetClassString];
+              return [self pageNotFound];
             }
         }
     }
@@ -197,6 +199,75 @@
         _cachedTarget = [[NSMutableDictionary alloc] init];
     }
     return _cachedTarget;
+}
+
+#pragma mark
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector {
+  NSMethodSignature *sig = [super methodSignatureForSelector:aSelector];
+  if(!sig)
+  {
+    return [self methodSignatureForSelector:@selector(pageNotFound)];
+  }
+  return sig;
+}
+
+- (void)forwardInvocation:(NSInvocation *)anInvocation {
+  anInvocation.selector = @selector(pageNotFound);
+  [anInvocation invoke];
+  NSLog(@"forwardInvocation");
+}
+
+- (Class)addPageNotFoundClass {
+  Class superClass = NSClassFromString(@"JgwBaseVC");
+  Class classNew;
+  if (superClass) {
+    // 动态创建类，并继承自JgwBaseVC
+    classNew = objc_allocateClassPair(superClass, "PageNotFoundVC", 0);
+  } else {
+    superClass = [UIViewController class];
+    classNew = objc_allocateClassPair(superClass, "PageNotFoundVC", 0);
+  }
+  if (classNew) {
+    // 添加方法
+    class_addMethod(classNew, @selector(addMethodForMyClass), (IMP)addMethodForMyClass, "V@:");
+    class_addMethod(classNew, @selector(methodSignatureForSelector:), (IMP)methodSignatureForSelector, "V@:");
+    class_addMethod(classNew, @selector(forwardInvocation:), (IMP)forwardInvocation, "V@:");
+  }
+  return classNew;
+}
+
+- (UIViewController *)pageNotFound {
+  id vc = [[self.PageNotFoundClass alloc] init];
+  [vc addMethodForMyClass];
+  return vc;
+}
+
+- (void)addMethodForMyClass {
+}
+
+static void addMethodForMyClass(id instance, SEL _cmd) {
+//  // 获取类中指定名称实例成员变量的信息
+//  Ivar ivar = class_getInstanceVariable([instance class], "view");
+//  // 返回名为test的ivar变量的值
+  UIView *view;
+//  UIView *view = object_getIvar(instance, ivar);
+  SEL viewSelector = NSSelectorFromString(@"view");
+  if ([instance respondsToSelector:viewSelector]) {
+    view = [instance view];
+  }
+  view.backgroundColor = [UIColor whiteColor];
+  UILabel *l = [[UILabel alloc] initWithFrame:view.bounds];
+  l.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  l.text = @"啊哦~功能页面不见了！";
+  l.textAlignment = NSTextAlignmentCenter;
+  [view addSubview:l];
+}
+static NSMethodSignature * methodSignatureForSelector(id self, SEL _cmd, SEL aSelector) {
+  NSMethodSignature *sig = ((id(*)(id, SEL, SEL))objc_msgSendSuper)(self, @selector(methodSignatureForSelector:), aSelector);
+  return sig;
+}
+static void forwardInvocation(id self, SEL _cmd, NSInvocation *anInvocation) {
 }
 
 @end
