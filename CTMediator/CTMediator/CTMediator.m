@@ -256,13 +256,17 @@ static void addMethodForMyClass(id instance, SEL _cmd) {
   if ([instance respondsToSelector:viewSelector]) {
     view = [instance view];
   }
-  view.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * (UITraitCollection * trait) {
-    if (trait.userInterfaceStyle == UIUserInterfaceStyleDark) {
-      return [UIColor blackColor];
-    } else {
-      return [UIColor whiteColor];
-    }
-  }];
+  if (@available(iOS 13.0, *)) {
+    view.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * (UITraitCollection * trait) {
+      if (trait.userInterfaceStyle == UIUserInterfaceStyleDark) {
+        return [UIColor blackColor];
+      } else {
+        return [UIColor whiteColor];
+      }
+    }];
+  } else {
+    view.backgroundColor = [UIColor whiteColor];
+  }
   UILabel *l = [[UILabel alloc] initWithFrame:view.bounds];
   l.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
   l.text = @"啊哦~功能页面不见了！";
